@@ -48,13 +48,26 @@ app.get('/',(req,res)=>{
 
 app.post("/ajout",(req,res)=>{
     // console.log(req.body)
+    const {matricule,nom,prenom,telephone,adresse,statut,matModif}=req.body;
+    let query=""
+    let parms=[]
+    // console.log(matModif)
     req.getConnection((err,conn)=>{
         if (err) {
             console.log("Erreur de la connexion ");
             
         }
         else{
-            conn.query("INSERT INTO etudiant(matricule,nom,prenom,telephone,adresse) VALUES (?,?,?,?,?)",[req.body.matricule,req.body.nom,req.body.prenom,req.body.telephone,req.body.adresse],(err,result)=>{
+            if (statut==="modif") {
+                query="UPDATE etudiant SET matricule=?, nom=?, prenom=?, telephone=?,adresse=?   WHERE matricule=?";
+                parms=[matricule,nom,prenom,telephone,adresse,matModif] 
+            }
+            else{
+                query="INSERT INTO etudiant(matricule,nom,prenom,telephone,adresse) VALUES (?,?,?,?,?)";
+                parms=[matricule,nom,prenom,telephone,adresse]
+            }
+
+            conn.query(query,parms,(err,result)=>{
                 if (err) {
                     console.log("Erreur lors de l'insertion");
                     
@@ -67,6 +80,28 @@ app.post("/ajout",(req,res)=>{
     })
 })
 
+
+app.post("/sup",(req,res)=>{
+    const {idSup}=req.body
+    req.getConnection((err,conn)=>{
+        if (err) {
+            console.log("Erreur de la connexion ");
+            
+        }
+        else{
+            conn.query("DELETE FROM etudiant WHERE matricule=?",[idSup],(err,result)=>{
+                if (err) {
+                    console.log("Erreur lors de la suppression");
+                    
+                }
+                else{
+                    res.status(200).redirect('/')
+                }
+
+            })
+        }
+    })
+})
 
 app.listen(5000,()=>{
     console.log('Serveur demarrer ...........');
